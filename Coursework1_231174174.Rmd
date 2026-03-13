@@ -1,0 +1,170 @@
+---
+title: "MTH6139 Time Series"
+subtitle: "Coursework 1 – Prophet Forecasting Analysis"
+author: "Sarth Rahul Kavdikar"
+date: "March 14, 2026"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: spacelab
+    highlight: tango
+---
+
+# 1 Introduction
+
+Time series forecasting is a common technique used in economics, business, and environmental science for prediction purposes. In this project, a classical time series dataset is used, and the Prophet time series forecasting system developed by Meta is employed for the purpose of prediction.
+
+Prophet is a procedure for forecasting time series data with long-term trends and seasonalities that is simple to use.
+
+In this project, the time series dataset used is the **AirPassengers dataset**.
+
+---
+
+# 2 Dataset Description
+
+The dataset contains monthly passenger counts for international airline travel between 1949 and 1960.
+
+```{r}
+data(AirPassengers)
+
+start(AirPassengers)
+end(AirPassengers)
+frequency(AirPassengers)
+```
+
+The series contains 144 observations with a frequency of 12, indicating monthly data.
+
+---
+
+# 3 Exploratory Analysis
+
+We first visualise the time series to understand its structure.
+
+```{r}
+plot(AirPassengers,
+     main="Monthly Airline Passenger Numbers",
+     xlab="Year",
+     ylab="Passengers (thousands)")
+```
+
+The plot reveals two important characteristics:
+
+- A strong upward trend over time
+- Increasing seasonal fluctuations
+
+The seasonal pattern suggests that passenger numbers increase during certain months of the year.
+
+---
+
+# 4 Variance Stabilisation
+
+The variability of the data increases as passenger numbers grow. To stabilise the variance we apply a logarithmic transformation.
+
+```{r}
+log_passengers <- log(AirPassengers)
+
+plot(log_passengers,
+     main="Log Transformed Passenger Data",
+     xlab="Year",
+     ylab="Log(Passengers)")
+```
+
+The transformation reduces the increasing spread of the data and helps produce a more stable time series.
+
+---
+
+# 5 Preparing Data for Prophet
+
+Prophet requires a dataframe with two columns named **ds** (date) and **y** (value).
+
+```{r}
+library(prophet)
+library(zoo)
+
+time_values <- time(AirPassengers)
+
+date_values <- as.Date(as.yearmon(time_values))
+
+passenger_dataframe <- data.frame(
+  ds = date_values,
+  y = as.numeric(AirPassengers)
+)
+
+head(passenger_dataframe)
+```
+
+---
+
+# 6 Prophet Forecasting Model
+
+We now estimate a Prophet forecasting model using the passenger data.
+
+```{r}
+prophet_model <- prophet(passenger_dataframe)
+```
+
+The model automatically estimates trend and seasonal effects.
+
+---
+
+# 7 Forecasting Future Passenger Numbers
+
+We generate predictions for the next 24 months.
+
+```{r}
+future_dates <- make_future_dataframe(prophet_model,
+                                      periods = 24,
+                                      freq = "month")
+
+forecast_results <- predict(prophet_model, future_dates)
+
+head(forecast_results)
+```
+
+---
+
+# 8 Forecast Visualisation
+
+```{r}
+plot(prophet_model, forecast_results)
+```
+
+The plot displays the predicted passenger counts along with uncertainty intervals.
+
+The forecast suggests continued growth in international airline travel.
+
+---
+
+# 9 Model Components
+
+```{r}
+prophet_plot_components(prophet_model, forecast_results)
+```
+
+The model separates the series into:
+
+- Long-term trend
+- Seasonal component
+
+The seasonal component highlights recurring yearly travel patterns.
+
+---
+
+# 10 Conclusion
+
+In this project, we worked with airline passenger data. The data shows strong growth trends that are characteristic of transportation demand. 
+
+The data has been successfully modelled with the trend as well as the seasonality. The data is showing a trend that the number of passengers will continue to grow based on the current trends. 
+
+This is a practical example of how we can use current forecasting tools to work with time-series data.
+
+---
+
+# References
+
+Prophet Documentation  
+https://facebook.github.io/prophet/
+
+R Markdown Guide  
+https://rmarkdown.rstudio.com
